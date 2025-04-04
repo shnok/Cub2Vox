@@ -5,15 +5,35 @@ using Voxels;
 namespace Cub2Vox {
     class Cub2VoxApp {
         static void Main(string[] args) {
+            int mode = GetMode();
             string inputPath = GetInputDirectory();
-            string outputPath = Environment.CurrentDirectory +
-                "\\Cub2Vox Converted Files\\";
+            string outputPath = inputPath +
+                "\\Converted\\";
             Directory.CreateDirectory(outputPath);
-            ConvertDirectory(inputPath, outputPath);
+            ConvertDirectory(inputPath, outputPath, mode);
             Console.WriteLine($"Finished! Any converted files are in " +
                 $"\"{outputPath}\"");
             Console.ReadLine();
         }
+
+        static int GetMode() {
+            Console.WriteLine($"Please, choose the model type:");
+            Console.WriteLine($"0 - Default");
+            Console.WriteLine($"1 - Hairstyle");
+            Console.Write($"Choice: ");
+
+            string mode = Console.ReadLine();
+            if(mode == "") {
+                return 0;
+            }
+
+            if (mode != "0" && mode != "1") {
+                Console.Write("Only accepted modes are 0 (default) and 1 (hairstyle).");
+            }
+
+            return int.Parse(mode, System.Globalization.NumberStyles.Integer);
+        }
+
         static string GetInputDirectory() {
             Console.Write("File folder with .cub files: ");
             string inputPath = Console.ReadLine();
@@ -55,14 +75,14 @@ namespace Cub2Vox {
             if (!Directory.Exists(path))
                 throw new DirectoryNotFoundException();
         }
-        static void ConvertDirectory(string inputPath, string outputPath) {
+        static void ConvertDirectory(string inputPath, string outputPath, int mode) {
             var inputFiles = new DirectoryInfo(inputPath).GetFiles();
             int progress = 1;
             foreach (var file in inputFiles) {
                 Console.WriteLine($"Importing {progress}/" +
                     $"{inputFiles.Length}:\"{file.Name}\"");
 
-                var voxData = ImportCubFile(file.FullName);
+                var voxData = ImportCubFile(file.FullName, mode);
                 if (voxData != null) {
                     Console.WriteLine($"Exporting {progress}/" +
                         $"{inputFiles.Length}:\"{file.Name}\"");
@@ -91,10 +111,10 @@ namespace Cub2Vox {
             return importedData;
         }
 
-        public static VoxelData ImportCubFile(string filePath) {
+        public static VoxelData ImportCubFile(string filePath, int mode) {
             VoxelData importedData = null;
             try {
-                importedData = CubImport.Import(filePath);
+                importedData = CubImport.Import(filePath, mode);
             } catch (IOException e) {
                 Console.WriteLine($"Exception while reading file {filePath}", e);
             }

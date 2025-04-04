@@ -5,59 +5,7 @@ using Voxels;
 
 namespace Cub2Vox {
     public class CubImport {
-        //public static void Export(int sizeX, int sizeY, int sizeZ,
-        //    Color[] colors, string path) {
-        //    Export(new VoxelData(new XYZ(sizeX, sizeY, sizeZ),
-        //        colors), path);
-        //}
-        //public static void Export(VoxelData data, string path) {
-        //    using (BinaryWriter writeBinary = new BinaryWriter(File.Open
-        //        (path, FileMode.Create))) {
-        //        writeBinary.Write(data.size.X);
-        //        writeBinary.Write(data.size.Y);
-        //        writeBinary.Write(data.size.Z);
-
-        //        for (int z = 0; z < data.size.Z; z++)
-        //            for (int y = 0; y < data.size.Y; y++)
-        //                for (int x = 0; x < data.size.X; x++) {
-        //                    var currentPos = new XYZ(x, y, z);
-        //                    if (data.IsValid(currentPos)) {
-        //                        var voxelColor = data.ColorOf(currentPos);
-        //                        writeBinary.Write(voxelColor.R);
-        //                        writeBinary.Write(voxelColor.G);
-        //                        writeBinary.Write(voxelColor.B);
-        //                    } else
-        //                        writeBinary.Write(000);
-        //                }
-        //    }
-        //}
-
-        private static VoxelData Read(BinaryReader reader) {
-            int num = reader.ReadInt32();
-            int num2 = reader.ReadInt32();
-            int num3 = reader.ReadInt32();
-            XYZ size = new XYZ(num, num2, num3);
-            Color[] array = new Color[256];
-            VoxelData voxelData = new VoxelData(size, array);
-            for (int i = 0; i < num; i++) {
-                for (int j = 0; j < num2; j++) {
-                    for (int k = 0; k < num3; k++) {
-                        voxelData[new XYZ(i, size.Y - 1 - j, size.Z - 1 - k)] = new Voxel((uint)(reader.ReadByte() + 1));
-                    }
-                }
-            }
-
-            for (int l = 1; l < array.Length; l++) {
-                byte r = (byte)(reader.ReadByte() * 4);
-                byte g = (byte)(reader.ReadByte() * 4);
-                byte b = (byte)(reader.ReadByte() * 4);
-                array[l] = new Color(r, g, b);
-            }
-
-            return voxelData;
-        }
-
-        public static VoxelData Import(string filename) {
+        public static VoxelData Import(string filename, int mode) {
             if (!File.Exists(filename)) {
                 Console.Error.WriteLine(filename + " doesn't exist.");
                 return null;
@@ -87,13 +35,14 @@ namespace Cub2Vox {
                             Color blockColor = new Color(R, G, B, 1);
 
                             uint colorIndex = 256;
-                            if (R != 0 || G != 0 || B != 0) {
+                            if (ShouldExtractVoxel(mode, R, G, B)) {
                                 int index = palette.IndexOf(blockColor);
 
                                 if (index == -1) {
                                     palette.Add(blockColor);
                                     colorIndex = (uint)palette.Count;
                                     array[palette.Count] = blockColor;
+                                    Console.WriteLine($"New color R:{R} G:{G} B:{B} at X:{x} Y:{y} Z:{z}");
                                 } else {
                                     colorIndex = (uint)index + 1;
                                 }
@@ -106,6 +55,19 @@ namespace Cub2Vox {
                 }
 
                 return voxelData;
+            }
+        }
+
+        private static bool ShouldExtractVoxel(int mode, byte R, byte G, byte B) {
+            if(mode == 0) {
+                return R != 0 || G != 0 || B != 0;
+            } else {
+                return R == 251 && G == 251 && B == 251 ||
+                    R == 39 && G == 50 && B == 75 ||
+                    R == 179 && G == 179 && B == 179 ||
+                    R == 182 && G == 182 && B == 182 ||
+                    R == 151 && G == 151 && B == 151 ||
+                    R == 189 && G == 189 && B == 189;
             }
         }
     }
