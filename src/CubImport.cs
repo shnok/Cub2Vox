@@ -5,6 +5,7 @@ using Voxels;
 
 namespace Cub2Vox {
     public class CubImport {
+        private static bool _flipY = true;
         public static VoxelData Import(string filename, int mode) {
             if (!File.Exists(filename)) {
                 Console.Error.WriteLine(filename + " doesn't exist.");
@@ -42,14 +43,14 @@ namespace Cub2Vox {
                                     palette.Add(blockColor);
                                     colorIndex = (uint)palette.Count;
                                     array[palette.Count] = blockColor;
-                                    Console.WriteLine($"New color R:{R} G:{G} B:{B} at X:{x} Y:{y} Z:{z}");
+                                    //Console.WriteLine($"New color R:{R} G:{G} B:{B} at X:{x} Y:{y} Z:{z}");
                                 } else {
                                     colorIndex = (uint)index + 1;
                                 }
                             }
 
                             Voxel voxel = new Voxel(colorIndex);
-                            voxelData[new XYZ(x, y, z)] = voxel;
+                            voxelData[new XYZ(x, _flipY ? (sizeY - y - 1) : y, z)] = voxel;
                         }
                     }
                 }
